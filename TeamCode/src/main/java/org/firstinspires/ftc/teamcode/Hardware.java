@@ -22,6 +22,8 @@ public class Hardware {
     /* Declare OpMode members. */
     private LinearOpMode myOpMode = null;   // gain access to methods in the calling OpMode.
 
+    // declare hardware
+
     private DcMotor leftFront = null;
     private DcMotor leftBack = null;
     private DcMotor rightFront = null;
@@ -30,13 +32,16 @@ public class Hardware {
     private DcMotor lift2 = null;
     private DcMotor vBar = null;
 
-    //public static final double liftPower = 0.5 ;
+    //declare constants
+
+    public static final double liftPower = 0.5 ;
 
     public static final double ticksPerMotorRev = 383.6;
     public static final double driveGearReduction = 0.5;
     public static final double wheelDiameterInches = 4;
     public static final double ticksPerInch = (ticksPerMotorRev * driveGearReduction) / (wheelDiameterInches * 3.14159265359);
 
+    //Define imu and gyro pid constants
     BNO055IMU imu;
     private Orientation angles;
 
@@ -56,6 +61,7 @@ public class Hardware {
 
 
     public void init()    {
+        //Hardware Map
         leftFront  = myOpMode.hardwareMap.get(DcMotor.class, "leftFront");
         leftBack  = myOpMode.hardwareMap.get(DcMotor.class, "leftBack");
         rightFront  = myOpMode.hardwareMap.get(DcMotor.class, "rightFront");
@@ -64,13 +70,22 @@ public class Hardware {
         lift2  = myOpMode.hardwareMap.get(DcMotor.class, "lift2");
         vBar  = myOpMode.hardwareMap.get(DcMotor.class, "vBar");
 
+        //Reverse inverted motors
         rightFront.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.REVERSE);
         lift2.setDirection(DcMotorSimple.Direction.REVERSE);
 
+        //Set motors to break on stop
+        leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         lift1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         lift2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        vBar.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        //Initialize motor encoders
         leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -78,6 +93,7 @@ public class Hardware {
 
         lift1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         lift2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        vBar.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         myOpMode.telemetry.addLine("Hardware Initialized");
         myOpMode.telemetry.update();
@@ -98,6 +114,7 @@ public class Hardware {
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, ZYX, AngleUnit.DEGREES);
         double startAngle = angles.firstAngle;
 
+        //set motor directions if strafing
         if (strafe) {
             newLFTarget = lFPos + (int) (inches * ticksPerInch);
             newRFTarget = rFPos - (int) (inches * ticksPerInch);
@@ -117,6 +134,7 @@ public class Hardware {
         telemetry.addData("newLBTarget", newLBTarget);
         telemetry.addData("newRBTarget", newRBTarget);
 
+        //Start running motors to the target position at desired speed
         leftFront.setTargetPosition(newLFTarget);
         rightFront.setTargetPosition(newRFTarget);
         leftBack.setTargetPosition(newLBTarget);
@@ -133,7 +151,9 @@ public class Hardware {
         rightBack.setPower(Math.abs(speed));
 
         runtime.reset();
+
         while (runtime.seconds() < timeoutS && (leftFront.isBusy() && rightFront.isBusy() && leftBack.isBusy() && rightBack.isBusy())) {
+            //Adjust for weight distribution offsetting the strafe by using proportional gyro correction
             if (!strafe) {
                 double error = kP * (startAngle - angles.firstAngle);
                 angles = imu.getAngularOrientation(AxesReference.INTRINSIC, ZYX, AngleUnit.DEGREES);
