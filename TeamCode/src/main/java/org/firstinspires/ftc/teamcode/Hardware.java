@@ -76,6 +76,7 @@ public class Hardware {
         lift2.setDirection(DcMotorSimple.Direction.REVERSE);
 
         //Set motors to break on stop
+        // Why are you trying to break the motors? Aren't those kind of expensive? Trying to sabotage your own team?
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

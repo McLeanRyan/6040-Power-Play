@@ -69,7 +69,7 @@ public class ScrimmageTeleOp extends LinearOpMode {
                 lift1.setPower(-.75);
                 lift1.setPower(-.75);
             }
-            
+
         }
     }
 }
