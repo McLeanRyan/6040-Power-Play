@@ -1,18 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
-
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 @TeleOp
-public class FieldCentricTeleOp extends LinearOpMode {
+public class OldSchoolTeleOp extends LinearOpMode {
     private DcMotor leftFront;
     private DcMotor leftBack;
     private DcMotor rightFront;
@@ -55,7 +51,6 @@ public class FieldCentricTeleOp extends LinearOpMode {
         rightBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         fourBar.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
         topLift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         bottomLift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -67,26 +62,29 @@ public class FieldCentricTeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
-            double rx = -gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x * 1.1;
-            double y = gamepad1.right_stick_x;
-
-            double heading = -imu.getAngularOrientation().firstAngle;
-            double rotX = x * Math.cos(heading) - y * Math.sin(heading);
-            double rotY = x * Math.sin(heading) + y * Math.cos(heading);
-
-            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-            double frontLeftPower = (rotY + rotX + rx) / denominator;
-            double backLeftPower = (rotY - rotX + rx) / denominator;
-            double frontRightPower = (rotY - rotX - rx) / denominator;
-            double backRightPower = (rotY + rotX - rx) / denominator;
-
-            leftFront.setPower(frontLeftPower);
-            leftBack.setPower(backLeftPower);
-            rightFront.setPower(frontRightPower);
-            rightBack.setPower(backRightPower);
-
-
+            telemetry.addLine("Arcade Drive");
+            double px = -gamepad1.left_stick_x;
+            if (Math.abs(px) < 0.05) px = 0;
+            double pa = gamepad1.left_stick_y;
+            if (Math.abs(pa) < 0.05) pa = 0;
+            double py = (gamepad1.right_stick_x*(.70));
+            if (Math.abs(py) < 0.05) py = 0;
+            double plf = -px + py - pa;
+            double plb = px + py  - pa;
+            double prf = -px + py + pa;
+            double prb = px + py + pa;
+            double max = Math.max(1.0, Math.abs(plf));
+            max = Math.max(max, Math.abs(plb));
+            max = Math.max(max, Math.abs(prf));
+            max = Math.max(max, Math.abs(prb));
+            plf /= max;
+            plb /= max;
+            prf /= max;
+            prb /= max;
+            leftFront.setPower(plf);
+            leftBack.setPower(plb);
+            rightFront.setPower(prf);
+            rightBack.setPower(prb);
 
             topLift.setPower(-gamepad2.left_stick_y);
             bottomLift.setPower(-gamepad2.left_stick_y);
