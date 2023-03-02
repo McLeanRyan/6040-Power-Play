@@ -37,10 +37,10 @@ public class OldSchoolTeleOp extends LinearOpMode {
         rightBack = hardwareMap.dcMotor.get("rightBack");
 
         fourBar = hardwareMap.dcMotor.get("fourBar");
-        topLift = hardwareMap.dcMotor.get("liftTop");
-        bottomLift = hardwareMap.dcMotor.get("liftBottom");
+        topLift = hardwareMap.dcMotor.get("topLift");
+        bottomLift = hardwareMap.dcMotor.get("bottomLift");
 
-        claw = hardwareMap.crservo.get("clawIntake");
+        claw = hardwareMap.crservo.get("claw");
 
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -62,29 +62,31 @@ public class OldSchoolTeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
-            telemetry.addLine("Arcade Drive");
-            double px = -gamepad1.left_stick_x;
-            if (Math.abs(px) < 0.05) px = 0;
-            double pa = gamepad1.left_stick_y;
-            if (Math.abs(pa) < 0.05) pa = 0;
-            double py = (gamepad1.right_stick_x*(.70));
-            if (Math.abs(py) < 0.05) py = 0;
-            double plf = -px + py - pa;
-            double plb = px + py  - pa;
-            double prf = -px + py + pa;
-            double prb = px + py + pa;
-            double max = Math.max(1.0, Math.abs(plf));
-            max = Math.max(max, Math.abs(plb));
-            max = Math.max(max, Math.abs(prf));
-            max = Math.max(max, Math.abs(prb));
-            plf /= max;
-            plb /= max;
-            prf /= max;
-            prb /= max;
-            leftFront.setPower(plf);
-            leftBack.setPower(plb);
-            rightFront.setPower(prf);
-            rightBack.setPower(prb);
+            double y = -gamepad1.left_stick_y; // Remember, this is reversed!
+            double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double rx = gamepad1.right_stick_x;
+
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio, but only when
+            // at least one is out of the range [-1, 1]
+            double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+            double frontLeftPower = (y + x + rx) / denominator;
+            double backLeftPower = (y - x + rx) / denominator;
+            double frontRightPower = (y - x - rx) / denominator;
+            double backRightPower = (y + x - rx) / denominator;
+
+            if (gamepad1.right_bumper) {
+                leftFront.setPower(.3*frontLeftPower);
+                leftBack.setPower(.3*backLeftPower);
+                rightFront.setPower(.3*frontRightPower);
+                rightBack.setPower(.3*backRightPower);
+            } else {
+                leftFront.setPower(frontLeftPower);
+                leftBack.setPower(backLeftPower);
+                rightFront.setPower(frontRightPower);
+                rightBack.setPower(backRightPower);
+            }
+
 
             topLift.setPower(-gamepad2.left_stick_y);
             bottomLift.setPower(-gamepad2.left_stick_y);

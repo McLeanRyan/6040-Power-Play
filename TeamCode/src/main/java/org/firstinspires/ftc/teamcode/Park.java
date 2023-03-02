@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.ZYX;
-import static java.lang.Thread.sleep;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -12,17 +10,12 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefaultListener;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 @Autonomous
-public class ConeDropAuto extends LinearOpMode {
+public class Park extends LinearOpMode {
 
     private DcMotor leftFront;
     private DcMotor leftBack;
@@ -35,22 +28,14 @@ public class ConeDropAuto extends LinearOpMode {
 
     private CRServo claw;
 
-    public static final double ticksPerMotorRev = 537.7;
-    public static final double driveGearReduction = 1;
-    public static final double wheelDiameterInches = 3.78;
+    public static final double ticksPerMotorRev = 383.6;
+    public static final double driveGearReduction = 0.5;
+    public static final double wheelDiameterInches = 4;
     public static final double ticksPerDriveInch = (ticksPerMotorRev * driveGearReduction) / (wheelDiameterInches * 3.14159265359);
     public static final double groundJunctionHeight = 0;
     public static final double lowJunctionHeight = 0;
     public static final double midJunctionHeight = 0;
     public static final double highJunctionHeight = 0;
-
-    private WebcamName webcam;
-
-    private VuforiaLocalizer vuforia = null;
-    private VuforiaTrackables targets = null;
-
-    public static final String JustinRobodogs23 = "AbPAsZf/////AAABmfibwXNw70SrjNg5qBWQi6ohhZf4HQXyJCn4vbC0aLRr+NHm3MyUJXkJxUF2Wk4RqQrqcoJCA3fELgH4SrjbvnsQzMFFb0y/GtXrHfYwzwbVG9Gg3LrOd/Rlet/qI39Q9foADM6Zu9XV21KISqXKamo6DDV8BfOE8vz6z18j7O4hoUfX9JYidlFunwAUFNMvHw5KEreXxAdKO6V2s51kUN1Jus7D9SKsztg7gIlU6D2BC2o7SXu0x8sN2/EqYcNGt9UpeV8SCYXImiIHN3eMzF9U4VKUUzYOzjuU2L+04BByIEtbCZKO2wPwCsK7WSnq65ES1KnO669ZOwt8dudWiE1Pl3dMOkisVmXx23UMrt5J"; //License Key
-
 
     BNO055IMU imu;
     private Orientation angles;
@@ -70,8 +55,8 @@ public class ConeDropAuto extends LinearOpMode {
 
         claw = hardwareMap.crservo.get("claw");
 
-        rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
+        //rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
+        //rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -87,63 +72,10 @@ public class ConeDropAuto extends LinearOpMode {
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
         imu.initialize(parameters);
-        webcam = hardwareMap.get(WebcamName.class, "Webcam 1");
-
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        VuforiaLocalizer.Parameters webcamparameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId); //R.id
-        webcamparameters.vuforiaLicenseKey = JustinRobodogs23;
-        webcamparameters.cameraName = webcam;
-        webcamparameters.useExtendedTracking = false;
-
-        vuforia = ClassFactory.getInstance().createVuforia(webcamparameters);
-
-        targets = this.vuforia.loadTrackablesFromAsset("JustinFTC23");
-        targets.get(0).setName("Sleepy");
-        targets.get(2).setName("Catan");
-        targets.get(1).setName("Triangle");
-
-        targets.activate();
 
         waitForStart();
 
-        VuforiaTrackableDefaultListener Sleepy = (VuforiaTrackableDefaultListener) targets.get(0).getListener();
-        VuforiaTrackableDefaultListener Catan = (VuforiaTrackableDefaultListener) targets.get(2).getListener();
-        VuforiaTrackableDefaultListener Triangle = (VuforiaTrackableDefaultListener) targets.get(1).getListener();
-
-        telemetry.addLine("Vuforia Initialized");
-        telemetry.update();
-
-        while(opModeIsActive()) {
-
-/*
-            encoderDrive(.4, -24, 30, true); //right strafe positive
-            stop();
-*/
-
-            claw.setPower(.5);
-            sleep(750);
-
-            fourBar.setPower(.7);
-            sleep(500);
-
-
-            if (Triangle.isVisible()) {
-                telemetry.addLine("Triforce");
-                telemetry.update();
-                park(0);
-                //stop();
-            } else if (Catan.isVisible()) {
-                telemetry.addLine("Catan");
-                telemetry.update();
-                //park(1);
-                //stop();
-            } else if (Sleepy.isVisible()) {
-                telemetry.addLine("Sleepy");
-                telemetry.update();
-                //park(2);
-                //stop();
-            }
-        }
+        drive(.5, 2000,false);
     }
 
     public void encoderDrive(double speed, double inches, double timeoutS, boolean strafe) {
@@ -224,37 +156,6 @@ public class ConeDropAuto extends LinearOpMode {
         sleep(100);
 
     }
-
-    public void park (int sleeveCase) {
-        claw.setPower(.5);
-        fourBar.setPower(.7);
-
-        encoderDrive(.4, -8, 30, true);
-        sleep(250);
-        //fourBar.setPower(.4);
-        encoderDrive(.4, 18, 30, false);
-        sleep(250);
-        fourBar.setPower(0);
-        sleep(500);
-        claw.setPower(-.5);
-        sleep(500);
-        claw.setPower(0);
-        encoderDrive(.4, -19, 30, false);
-
-        if (sleeveCase == 0) {
-            encoderDrive(.4, -12, 30, true);
-            encoderDrive(.4, 24, 30, false);
-        }else if (sleeveCase == 1) {
-            encoderDrive(.4, 12, 30, true);
-            encoderDrive(.4, 24, 30, false);
-        }else if (sleeveCase == 2) {
-            encoderDrive(.4, 36, 30, true);
-            encoderDrive(.4, 24, 30, false);
-        }else {
-            encoderDrive(.4, 12, 30, true);
-        }
-    }
-
     public void drive (double speed, int seconds, boolean strafe) {
         if (strafe) {
             leftFront.setPower(-speed);

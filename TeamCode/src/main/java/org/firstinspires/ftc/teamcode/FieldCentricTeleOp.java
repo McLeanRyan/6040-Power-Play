@@ -41,10 +41,10 @@ public class FieldCentricTeleOp extends LinearOpMode {
         rightBack = hardwareMap.dcMotor.get("rightBack");
 
         fourBar = hardwareMap.dcMotor.get("fourBar");
-        topLift = hardwareMap.dcMotor.get("liftTop");
-        bottomLift = hardwareMap.dcMotor.get("liftBottom");
+        topLift = hardwareMap.dcMotor.get("topLift");
+        bottomLift = hardwareMap.dcMotor.get("bottomLift");
 
-        claw = hardwareMap.crservo.get("clawIntake");
+        claw = hardwareMap.crservo.get("claw");
 
         rightFront.setDirection(DcMotorSimple.Direction.REVERSE);
         rightBack.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -67,36 +67,48 @@ public class FieldCentricTeleOp extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive() && !isStopRequested()) {
-            double rx = -gamepad1.left_stick_y;
-            double x = gamepad1.left_stick_x * 1.1;
-            double y = gamepad1.right_stick_x;
+            double y = gamepad1.left_stick_y; // Remember, this is reversed!
+            double x = -gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
+            double rx = gamepad1.right_stick_x;
 
-            double heading = -imu.getAngularOrientation().firstAngle;
-            double rotX = x * Math.cos(heading) - y * Math.sin(heading);
-            double rotY = x * Math.sin(heading) + y * Math.cos(heading);
+            if (Math.abs(y) < 0.05) y = 0;
+            else if (Math.abs(y) < 0.25) y /= 2;
 
+            if (Math.abs(x) < 0.05) x = 0;
+            else if (Math.abs(x) < 0.25) x /= 2;
+
+            if (Math.abs(rx) < 0.05) rx = 0;
+            else if(Math.abs(rx) < 0.25) rx /= 2;
+
+            // Read inverse IMU heading, as the IMU heading is CW positive
+            double botHeading = -imu.getAngularOrientation().firstAngle;
+
+            double rotX = x * Math.cos(botHeading) - y * Math.sin(botHeading);
+            double rotY = x * Math.sin(botHeading) + y * Math.cos(botHeading);
+
+            // Denominator is the largest motor power (absolute value) or 1
+            // This ensures all the powers maintain the same ratio, but only when
+            // at least one is out of the range [-1, 1]
             double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
             double frontLeftPower = (rotY + rotX + rx) / denominator;
             double backLeftPower = (rotY - rotX + rx) / denominator;
             double frontRightPower = (rotY - rotX - rx) / denominator;
             double backRightPower = (rotY + rotX - rx) / denominator;
 
-            leftFront.setPower(frontLeftPower);
-            leftBack.setPower(backLeftPower);
-            rightFront.setPower(frontRightPower);
-            rightBack.setPower(backRightPower);
-
-
+            leftFront.setPower(.75*frontLeftPower);
+            leftBack.setPower(.75*backLeftPower);
+            rightFront.setPower(.75*frontRightPower);
+            rightBack.setPower(.75*backRightPower);
 
             topLift.setPower(-gamepad2.left_stick_y);
             bottomLift.setPower(-gamepad2.left_stick_y);
             fourBar.setPower(-gamepad2.right_stick_y);
 
             while (gamepad2.right_bumper) {
-                claw.setPower(1);
+                claw.setPower(.5);
             }
             while (gamepad2.left_bumper) {
-                claw.setPower(-1);
+                claw.setPower(-.5);
             }
             if (gamepad2.a) {
                 topLift.setPower(1);
