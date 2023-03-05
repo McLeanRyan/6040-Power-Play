@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 import static org.firstinspires.ftc.robotcore.external.navigation.AxesOrder.ZYX;
 import static java.lang.Thread.sleep;
 
@@ -22,7 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackableDefau
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 @Autonomous
-public class ConeDropAuto extends LinearOpMode {
+public class LeftSideConeDropPark extends LinearOpMode {
 
     private DcMotor leftFront;
     private DcMotor leftBack;
@@ -83,6 +82,16 @@ public class ConeDropAuto extends LinearOpMode {
         topLift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         bottomLift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
         imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
@@ -116,12 +125,12 @@ public class ConeDropAuto extends LinearOpMode {
         while(opModeIsActive()) {
 
 /*
-            encoderDrive(.4, -24, 30, true); //right strafe positive
+            encoderDrive(.4, -24, 30, true, 0.5, 0.7); //right strafe positive
             stop();
 */
 
             claw.setPower(.5);
-            sleep(750);
+            sleep(1000);
 
             fourBar.setPower(.7);
             sleep(500);
@@ -131,22 +140,22 @@ public class ConeDropAuto extends LinearOpMode {
                 telemetry.addLine("Triforce");
                 telemetry.update();
                 park(0);
-                //stop();
+                stop();
             } else if (Catan.isVisible()) {
                 telemetry.addLine("Catan");
                 telemetry.update();
-                //park(1);
-                //stop();
+                park(1);
+                stop();
             } else if (Sleepy.isVisible()) {
                 telemetry.addLine("Sleepy");
                 telemetry.update();
-                //park(2);
-                //stop();
+                park(2);
+                stop();
             }
         }
     }
 
-    public void encoderDrive(double speed, double inches, double timeoutS, boolean strafe) {
+    public void encoderDrive(double speed, double inches, double timeoutS, boolean strafe, double clawPower, double fourBarPower) {
         telemetry.addLine("Encoder Drive");
 
         int newLFTarget;
@@ -159,6 +168,9 @@ public class ConeDropAuto extends LinearOpMode {
         int rBPos = rightBack.getCurrentPosition();
         angles = imu.getAngularOrientation(AxesReference.INTRINSIC, ZYX, AngleUnit.DEGREES);
         double startAngle = angles.firstAngle;
+
+        claw.setPower(clawPower);
+        fourBar.setPower(fourBarPower);
 
         //set motor directions if strafing
         if (strafe) {
@@ -229,29 +241,30 @@ public class ConeDropAuto extends LinearOpMode {
         claw.setPower(.5);
         fourBar.setPower(.7);
 
-        encoderDrive(.4, -8, 30, true);
+        encoderDrive(.4, -17, 30, true, .5, .7);
         sleep(250);
         //fourBar.setPower(.4);
-        encoderDrive(.4, 18, 30, false);
+        encoderDrive(.4, 16.5, 30, false, .5, .7);
         sleep(250);
-        fourBar.setPower(0);
+        fourBar.setPower(-0.2);
         sleep(500);
         claw.setPower(-.5);
         sleep(500);
         claw.setPower(0);
-        encoderDrive(.4, -19, 30, false);
+        encoderDrive(.4, -19, 30, false, 0, 0);
+        encoderDrive(.4, 1, 30, false, 0, 0);
 
         if (sleeveCase == 0) {
-            encoderDrive(.4, -12, 30, true);
-            encoderDrive(.4, 24, 30, false);
+            encoderDrive(.4, -13, 30, true, 0, 0);
+            encoderDrive(.4, 26, 30, false, 0, 0);
         }else if (sleeveCase == 1) {
-            encoderDrive(.4, 12, 30, true);
-            encoderDrive(.4, 24, 30, false);
+            encoderDrive(.4, 14.5, 30, true, 0, 0);
+            encoderDrive(.4, 26, 30, false, 0, 0);
         }else if (sleeveCase == 2) {
-            encoderDrive(.4, 36, 30, true);
-            encoderDrive(.4, 24, 30, false);
+            encoderDrive(.4, 39.5, 30, true, 0, 0);
+            encoderDrive(.4, 26, 30, false, 0, 0);
         }else {
-            encoderDrive(.4, 12, 30, true);
+            encoderDrive(.4, -13, 30, true, 0, 0);
         }
     }
 

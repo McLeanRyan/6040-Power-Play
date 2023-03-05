@@ -81,16 +81,15 @@ public class OldSchoolTeleOp extends LinearOpMode {
                 rightFront.setPower(.3*frontRightPower);
                 rightBack.setPower(.3*backRightPower);
             } else {
-                leftFront.setPower(frontLeftPower);
-                leftBack.setPower(backLeftPower);
-                rightFront.setPower(frontRightPower);
-                rightBack.setPower(backRightPower);
+                leftFront.setPower(.85*frontLeftPower);
+                leftBack.setPower(.85*backLeftPower);
+                rightFront.setPower(.85*frontRightPower);
+                rightBack.setPower(.85*backRightPower);
             }
-
 
             topLift.setPower(-gamepad2.left_stick_y);
             bottomLift.setPower(-gamepad2.left_stick_y);
-            fourBar.setPower(-gamepad2.right_stick_y);
+            fourBar.setPower(-gamepad2.right_stick_y*.8);
 
             while (gamepad2.right_bumper) {
                 claw.setPower(1);
